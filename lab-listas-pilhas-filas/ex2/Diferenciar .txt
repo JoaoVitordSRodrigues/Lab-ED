@@ -1,0 +1,7 @@
+Comente a dificuldade para se diferenciar Fila cheia de Fila vazia:
+Na implementação de uma fila circular, a condição de "fila cheia" se 
+torna ambígua porque a fila aparenta estar cheia quando o ponteiro do 
+final é imediatamente anterior ao ponteiro do início. Para resolver isso, 
+usa-se uma posição extra para diferenciar as condições ou um contador que 
+rastreie o número de elementos.
+
