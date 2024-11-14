@@ -1,101 +1,167 @@
-public class FilaCircular {
-    private Object[] fila;  // Vetor para armazenar os elementos da fila
-    private int frente;      // Apontador para o "índice anterior ao primeiro"
-    private int finalFila;   // Apontador para o "último elemento"
-    private int tamanho;     // Contador para o número de elementos na fila
-    private int capacidade;  // Capacidade máxima da fila
+#include <stdio.h>
+#include <stdlib.h>
 
-    // Construtor para criar a fila com uma capacidade inicial
-    public FilaCircular(int capacidade) {
-        this.capacidade = capacidade;
-        fila = new Object[capacidade];
-        frente = 0;
-        finalFila = 0;
-        tamanho = 0;
+typedef struct FilaCircular {
+    void** fila;       // Vetor para armazenar os elementos da fila (ponteiros genéricos)
+    int frente;        // Apontador para o "índice anterior ao primeiro"
+    int finalFila;     // Apontador para o "último elemento"
+    int tamanho;       // Contador para o número de elementos na fila
+    int capacidade;    // Capacidade máxima da fila
+} FilaCircular;
+
+// Função para criar a fila com uma capacidade inicial
+FilaCircular* criarFila(int capacidade) {
+    FilaCircular* fila = (FilaCircular*)malloc(sizeof(FilaCircular));
+    fila->capacidade = capacidade;
+    fila->fila = (void**)malloc(capacidade * sizeof(void*));  // Aloca espaço para os elementos
+    fila->frente = 0;
+    fila->finalFila = 0;
+    fila->tamanho = 0;
+    return fila;
+}
+
+// Função para verificar se a fila está vazia
+int vazia(FilaCircular* fila) {
+    return fila->tamanho == 0;
+}
+
+// Função para verificar se a fila está cheia
+int cheia(FilaCircular* fila) {
+    return fila->tamanho == fila->capacidade;
+}
+
+// Função para enfileirar um elemento
+void enfileira(FilaCircular* fila, void* obj) {
+    if (cheia(fila)) {
+        printf("Fila cheia, não é possível enfileirar.\n");
+        return;
     }
+    fila->fila[fila->finalFila] = obj;
+    fila->finalFila = (fila->finalFila + 1) % fila->capacidade;  // Atualiza o final, fazendo a rotação
+    fila->tamanho++;
+}
 
-    // Método para verificar se a fila está vazia
-    public boolean vazia() {
-        return tamanho == 0;
+// Função para desenfileirar um elemento
+void* desenfileira(FilaCircular* fila) {
+    if (vazia(fila)) {
+        printf("Fila vazia, não é possível desenfileirar.\n");
+        return NULL;
     }
+    fila->frente = (fila->frente + 1) % fila->capacidade;  // Avança para a próxima posição
+    void* obj = fila->fila[fila->frente];
+    fila->tamanho--;
+    return obj;
+}
 
-    // Método para verificar se a fila está cheia
-    public boolean cheia() {
-        return tamanho == capacidade;
+// Função para mostrar todos os elementos da fila
+void mostrarFila(FilaCircular* fila) {
+    if (vazia(fila)) {
+        printf("Fila vazia.\n");
+        return;
     }
+    int i = (fila->frente + 1) % fila->capacidade;  // Inicia do próximo elemento após 'frente'
+    printf("Elementos na fila: ");
+    for (int count = 0; count < fila->tamanho; count++) {
+        // Desreferencia o ponteiro para imprimir o valor armazenado
+        printf("%d ", *(int*)fila->fila[i]);  // Aqui, desreferenciamos o ponteiro para imprimir o valor
+        i = (i + 1) % fila->capacidade;  // Move para o próximo elemento na fila
+    }
+    printf("\n");
+}
 
-    // Método para enfileirar um elemento
-    public void enfileira(Object obj) {
-        if (cheia()) {
-            System.out.println("Fila cheia, não é possível enfileirar.");
-            return;
+// Função para pesquisar um elemento na fila
+int pesquisa(FilaCircular* fila, void* obj, int (*comparar)(void*, void*)) {
+    if (vazia(fila)) {
+        return 0;
+    }
+    int i = (fila->frente + 1) % fila->capacidade;
+    for (int count = 0; count < fila->tamanho; count++) {
+        if (comparar(fila->fila[i], obj) == 0) {
+            return 1;
         }
-        fila[finalFila] = obj;
-        finalFila = (finalFila + 1) % capacidade;  // Atualiza o final, fazendo a rotação
-        tamanho++;
+        i = (i + 1) % fila->capacidade;
     }
+    return 0;
+}
 
-    // Método para desenfileirar um elemento
-    public Object desenfileira() {
-        if (vazia()) {
-            System.out.println("Fila vazia, não é possível desenfileirar.");
-            return null;
-        }
-        frente = (frente + 1) % capacidade;  // Avança para a próxima posição
-        Object obj = fila[frente];
-        tamanho--;
-        return obj;
-    }
+// Função de comparação para inteiros (como exemplo)
+int compararInteiros(void* a, void* b) {
+    return (*(int*)a - *(int*)b);  // Subtrai os inteiros para comparar
+}
 
-    // Método para retornar o primeiro elemento da fila sem removê-lo
-    public Object cabeca() {
-        if (vazia()) {
-            System.out.println("Fila vazia.");
-            return null;
-        }
-        return fila[(frente + 1) % capacidade];
-    }
+int main() {
+    // Pergunta ao usuário a capacidade da fila
+    int capacidade;
+    printf("Quantos elementos você quer na fila? ");
+    scanf("%d", &capacidade);
 
-    // Método para retornar o último elemento da fila sem removê-lo
-    public Object cauda() {
-        if (vazia()) {
-            System.out.println("Fila vazia.");
-            return null;
-        }
-        return fila[(finalFila - 1 + capacidade) % capacidade];
-    }
+    // Cria a fila com a capacidade fornecida pelo usuário
+    FilaCircular* fila = criarFila(capacidade);
 
-    // Método para mostrar todos os elementos da fila
-    public void mostrarFila() {
-        if (vazia()) {
-            System.out.println("Fila vazia.");
-            return;
-        }
-        int i = (frente + 1) % capacidade;
-        for (int count = 0; count < tamanho; count++) {
-            System.out.print(fila[i] + " ");
-            i = (i + 1) % capacidade;
-        }
-        System.out.println();
-    }
+    int opcao;
+    while (1) {
+        printf("\nEscolha uma operação:\n");
+        printf("1. Enfileirar\n");
+        printf("2. Desenfileirar\n");
+        printf("3. Mostrar fila\n");
+        printf("4. Pesquisar elemento\n");
+        printf("5. Sair\n");
+        printf("Digite sua opção: ");
+        scanf("%d", &opcao);
 
-    // Método para pesquisar um elemento na fila
-    public boolean pesquisa(Object obj) {
-        if (vazia()) {
-            return false;
-        }
-        int i = (frente + 1) % capacidade;
-        for (int count = 0; count < tamanho; count++) {
-            if (fila[i].equals(obj)) {
-                return true;
+        switch (opcao) {
+            case 1: {
+                int valor;
+                printf("Digite um valor para enfileirar: ");
+                scanf("%d", &valor);
+
+                // Aloca memória para armazenar o valor e insere na fila
+                int* ptrValor = (int*)malloc(sizeof(int));
+                *ptrValor = valor;
+                enfileira(fila, ptrValor);
+                break;
             }
-            i = (i + 1) % capacidade;
+
+            case 2: {
+                int* removido = (int*)desenfileira(fila);
+                if (removido != NULL) {
+                    printf("Elemento removido: %d\n", *removido);
+                    free(removido);  // Libera a memória alocada para o valor removido
+                }
+                break;
+            }
+
+            case 3:
+                mostrarFila(fila);  // Exibe os elementos da fila
+                break;
+
+            case 4: {
+                int pesquisaValor;
+                printf("Digite o valor a ser pesquisado: ");
+                scanf("%d", &pesquisaValor);
+
+                if (pesquisa(fila, &pesquisaValor, compararInteiros)) {
+                    printf("Elemento %d encontrado na fila.\n", pesquisaValor);
+                } else {
+                    printf("Elemento %d não encontrado na fila.\n", pesquisaValor);
+                }
+                break;
+            }
+
+            case 5:
+                // Libera a memória de todos os elementos restantes na fila
+                while (!vazia(fila)) {
+                    free(desenfileira(fila));  // Libera a memória dos elementos
+                }
+                free(fila->fila);  // Libera o espaço alocado para a fila
+                free(fila);        // Libera a estrutura da fila
+                printf("Saindo...\n");
+                return 0;
+
+            default:
+                printf("Opção inválida. Tente novamente.\n");
         }
-        return false;
     }
 
-    // Método para retornar o tamanho da fila
-    public int tamanho() {
-        return tamanho;
-    }
+    return 0;
 }
